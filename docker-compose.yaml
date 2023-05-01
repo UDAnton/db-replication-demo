@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+  mysql-master:
+    image: mysql:8.0
+    container_name: "mysql-master"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db_replication_test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+    command:
+      - --server-id=100001
+      - --default-authentication-plugin=mysql_native_password
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --enforce-gtid-consistency=ON
+      - --log-slave-updates=ON
+      - --relay-log=mysql-relay-bin
+      - --report-host=
+    ports:
+      - '3306:3306'
+
+  mysql-slave-1:
+    image: mysql:8.0
+    container_name: "mysql-slave-1"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db_replication_test
+      MYSQL_USER: slave-1
+      MYSQL_PASSWORD: slave
+    command:
+      - --server-id=100002
+      - --default-authentication-plugin=mysql_native_password
+      - --log-bin=mysql-bin
+      - --relay-log=mysql-relay-bin
+      - --read-only=ON
+    ports:
+      - '3307:3306'
+    depends_on:
+      - mysql-master
+
+  mysql-slave-2:
+    image: mysql:8.0
+    container_name: "mysql-slave-2"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db_replication_test
+      MYSQL_USER: slave-2
+      MYSQL_PASSWORD: slave
+    command:
+      - --server-id=100003
+      - --default-authentication-plugin=mysql_native_password
+      - --log-bin=mysql-bin
+      - --relay-log=mysql-relay-bin
+      - --read-only=ON
+    ports:
+      - '3308:3306'
+    depends_on:
+      - mysql-master
